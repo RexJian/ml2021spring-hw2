@@ -1,11 +1,7 @@
-import numpy as np
 import pandas as pd
-import os
-from torch.utils.tensorboard import SummaryWriter
 import torch.cuda
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 import openpyxl
 from PhonemeDataset import *
 from Model import *
@@ -16,16 +12,15 @@ device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 hyper_param={
     'train_ratio':0.8,
     'random_state':20,
-    'batch_size':1024,
-    'epoches':500,
-    'learning_rate':0.001,
+    'batch_size':64,
+    'epoches':100,
+    'learning_rate':0.0001,
     'correlation_threshold':0.2,
     'model_name':"PhonemePredict",
     'save_csv_path':"Submission"
 }
 def Load_Npy(npy_path,IsLabel):
     load_file=np.load(npy_path)
-    label_list=[]
     if IsLabel:
         df=pd.DataFrame(load_file,dtype='int')
 
@@ -37,11 +32,9 @@ def Train_Load_Optimize(input_dim):
     model=Model(input_dim,device)
     model=model.to(device)
     model.loss=model.loss.to(device)
-    optim=torch.optim.Adam(model.parameters(),hyper_param['learning_rate'])
+    optim=torch.optim.AdamW(model.parameters(),hyper_param['learning_rate'])
     step=0
     pre_total_loss=999999999999
-    loss1=nn.CrossEntropyLoss()
-    loss1=loss1.to(device)
     for ecpoch in range(hyper_param['epoches']):
         model.train()
         total_train_loss=0.0
@@ -128,6 +121,6 @@ test_dataloader=DataLoader(test_dataset,hyper_param['batch_size'],shuffle=False)
 
 print("DataLoader Done")
 
-#Train_Load_Optimize(train_df.shape[1])
+Train_Load_Optimize(train_df.shape[1])
 Test(train_df.shape[1],"C:/Users/Jian/Desktop/"+hyper_param['model_name'])
 
